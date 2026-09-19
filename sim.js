@@ -44,7 +44,7 @@ const HERO_POOL = [
   {name:'Paquito',   role:'EXP Laner',  pick:0.48,ban:0.32},
   {name:'Brody',     role:'Gold Laner',  pick:0.62,ban:0.48},
   {name:'Bruno',   role:'Gold Laner',  pick:0.58,ban:0.42},
-  {name:'Karrie',    role:'Gold Laner',  pick:0.50,ban:0.35},
+  {name:'Moskov',    role:'Gold Laner',  pick:0.50,ban:0.35},
   {name:'Freya',    role:'Gold Laner',     pick:0.55,ban:0.45},
   {name:'Lancelot',  role:'Jungler',     pick:0.60,ban:0.50},
   {name:'Fanny',     role:'Jungler',     pick:0.45,ban:0.62},
@@ -59,15 +59,16 @@ const HERO_POOL = [
   {name:'Esmeralda', role:'EXP Laner',  pick:0.48,ban:0.35},
   {name:'Claude',    role:'Gold Laner',  pick:0.45,ban:0.40},
   {name:'Granger',    role:'Gold Laner',  pick:0.55,ban:0.50},
-  {name:'Harley',     role:'Gold Laner',  pick:0.42,ban:0.28},
+  {name:'Harley',     role:'Jungler',  pick:0.42,ban:0.28},
   {name:'Hirara',    role:'Jungler',     pick:0.52,ban:0.42},
   {name:'Hayabusa',  role:'Jungler',     pick:0.48,ban:0.38},
   {name:'Lylia',    role:'Mid Laner',   pick:0.50,ban:0.42},
   {name:'Selena',     role:'Mid Laner',   pick:0.45,ban:0.32},
   {name:'Minotaur',     role:'EXP Laner',   pick:0.45,ban:0.32},
   {name:'Chou',     role:'Roamer',   pick:0.45,ban:0.32},
-  {name:'Khaleed',     role:'Roamer',   pick:0.45,ban:0.32},
-  {name:'Sora',     role:'EXP Laner',   pick:0.45,ban:0.32},
+  {name:'Khaleed',     role:'Roamer',   pick:0.42,ban:0.32},
+  {name:'Sora',     role:'EXP Laner',   pick:0.49,ban:0.32},
+  {name:'Claude',     role:'Gold Laner',   pick:0.58,ban:0.32},
 ];
 
 function weightedPick(pool, key) {
