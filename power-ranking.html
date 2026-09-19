@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Power Ranking — MPL ID Simulate</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .pr-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      display: grid;
+      grid-template-columns: 36px 1fr 80px 120px;
+      align-items: center;
+      gap: 16px;
+      transition: background 0.1s, border-color 0.1s;
+      margin-bottom: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+    .pr-card::before {
+      content: "";
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+    }
+    .pr-card:hover { background: var(--color-surface-hover, #161D27); }
+
+    .pr-rank {
+      font-family: var(--font-mono);
+      font-size: 1.25rem;
+      font-weight: 700;
+      text-align: center;
+    }
+    .rank-1 { color: var(--color-amber,#F59E0B); }
+    .rank-2 { color: #94A3B8; }
+    .rank-3 { color: #A0785A; }
+    .rank-other { color: var(--color-text-muted); font-size: 1rem; }
+
+    .pr-info { display: flex; flex-direction: column; gap: 4px; }
+    .pr-name { font-family: var(--font-mono); font-size: 1rem; font-weight: 700; }
+    .pr-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+    .pr-tag {
+      font-family: var(--font-mono); font-size: 0.5625rem;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 2px 7px; border-radius: var(--radius-sm);
+    }
+
+    .pr-score-col { text-align: right; }
+    .pr-score-val {
+      font-family: var(--font-mono); font-size: 1.75rem; font-weight: 700;
+      line-height: 1;
+    }
+    .pr-score-lbl {
+      font-family: var(--font-mono); font-size: 0.5rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--color-text-muted); margin-top: 2px;
+    }
+
+    .pr-bar-col { display: flex; flex-direction: column; gap: 6px; }
+    .pr-bar-bg { height: 6px; background: var(--color-border); border-radius: 3px; overflow: hidden; }
+    .pr-bar-fill { height: 100%; border-radius: 3px; transition: width 0.8s cubic-bezier(0.22,1,0.36,1); }
+    .pr-tier-label {
+      font-family: var(--font-mono); font-size: 0.5625rem;
+      letter-spacing: 0.08em; text-transform: uppercase;
+    }
+
+    /* Tier badges */
+    .tier-s  { background: rgba(251,191,36,0.15); color: #FBBF24; border: 1px solid rgba(251,191,36,0.3); }
+    .tier-a  { background: rgba(56,189,248,0.12); color: #38BDF8; border: 1px solid rgba(56,189,248,0.25); }
+    .tier-b  { background: rgba(34,197,94,0.10);  color: #22C55E; border: 1px solid rgba(34,197,94,0.2); }
+    .tier-c  { background: rgba(255,255,255,0.05); color: #94A3B8; border: 1px solid rgba(255,255,255,0.08); }
+
+    .tier-section-label {
+      font-family: var(--font-mono);
+      font-size: 0.5625rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      padding: 6px 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .tier-section-label::after { content:""; flex:1; height:1px; background:var(--color-border); }
+
+    .summary-bar {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    .summary-item { text-align: center; }
+    .summary-val { font-family: var(--font-mono); font-size: 1.25rem; font-weight: 700; }
+    .summary-lbl { font-family: var(--font-mono); font-size: 0.5rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text-muted); margin-top: 2px; }
+
+    @media(max-width:600px){
+      .pr-card { grid-template-columns: 28px 1fr 56px; }
+      .pr-bar-col { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar__brand">MPL ID <span>Simulate</span></div>
+    <ul class="navbar__tabs">
+      <li class="navbar__tab"><a href="home.html">Home</a></li>
+      <li class="navbar__tab"><a href="index.html">Teams</a></li>
+      <li class="navbar__tab"><a href="players.html">Players</a></li>
+      <li class="navbar__tab"><a href="schedule.html">Schedule</a></li>
+      <li class="navbar__tab"><a href="standings.html">Standings</a></li>
+      <li class="navbar__tab"><a href="playoff.html">Playoff</a></li>
+      <li class="navbar__tab"><a href="analytics.html">Analytics</a></li>
+      <li class="navbar__tab is-active">Power Ranking</li>
+    </ul>
+  </nav>
+
+  <main class="container" style="padding-top:36px; padding-bottom:48px;">
+    <h1 data-type="Power Ranking">Power Ranking</h1>
+    <p class="text-muted" style="margin-top:8px; margin-bottom:24px;">
+      Penilaian kekuatan tim MPL ID Season 18 berdasarkan roster, konsistensi, dan potensi.</p>
+
+    <div class="summary-bar">
+      <div class="summary-item"><div class="summary-val" style="color:var(--color-amber,#F59E0B);">S</div><div class="summary-lbl">Tier Tertinggi</div></div>
+      <div class="summary-item"><div class="summary-val">9</div><div class="summary-lbl">Tim Dinilai</div></div>
+      <div class="summary-item"><div class="summary-val" style="color:var(--color-cyan,#38BDF8);">93</div><div class="summary-lbl">Skor Tertinggi</div></div>
+      <div class="summary-item"><div class="summary-val" style="color:var(--color-text-muted);">64</div><div class="summary-lbl">Skor Terendah</div></div>
+    </div>
+
+    <div id="ranking-list"></div>
+  </main>
+
+  <script src="terminal.js"></script>
+  <script>
+    const RANKINGS = [
+      {
+        id: 'teamliquidid', rank: 1, score: 93, tier: 'S',
+        tags: ['Dominant', 'Consistent', 'Top Seed'],
+        notes: 'Performa paling stabil, depth roster terdalam.'
+      },
+      {
+        id: 'bigetron', rank: 2, score: 88, tier: 'S',
+        tags: ['Aggressive', 'High Tempo'],
+        notes: 'Gaya ofensif cepat, sangat berbahaya di early game.'
+      },
+      {
+        id: 'alterego', rank: 3, score: 84, tier: 'A',
+        tags: ['Versatile', 'Draft Flex'],
+        notes: 'Fleksibilitas draft tinggi, bisa adaptasi banyak meta.'
+      },
+      {
+        id: 'navi', rank: 4, score: 80, tier: 'A',
+        tags: ['Disciplined', 'Teamfight'],
+        notes: 'Eksekusi teamfight rapi, kuat di late game.'
+      },
+      {
+        id: 'rrq', rank: 5, score: 76, tier: 'A',
+        tags: ['Experienced', 'Veteran'],
+        notes: 'Pengalaman playoff panjang, mental kuat di pressure moments.'
+      },
+      {
+        id: 'onic', rank: 6, score: 73, tier: 'B',
+        tags: ['Unpredictable', 'Star Player'],
+        notes: 'Bergantung pada individual brilliance, bisa upset siapa saja.'
+      },
+      {
+        id: 'evos', rank: 7, score: 70, tier: 'B',
+        tags: ['Rebuilding', 'Young Roster'],
+        notes: 'Roster muda dengan potensi tinggi, masih mencari konsistensi.'
+      },
+      {
+        id: 'dewaunited', rank: 8, score: 67, tier: 'C',
+        tags: ['Developing', 'Grinding'],
+        notes: 'Proses rebuild solid, ancaman nyata bagi tim yang lengah.'
+      },
+      {
+        id: 'geekfam', rank: 9, score: 64, tier: 'C',
+        tags: ['Scrappy', 'Unpredictable'],
+        notes: 'Sering underestimated, bisa jadi dark horse jika chemistry klik.'
+      },
+    ];
+
+    const TEAM_COLORS = {
+      teamliquidid: '#1D3461',
+      bigetron:     '#E63946',
+      alterego:     '#8C2F39',
+      navi:         '#F2F2F2',
+      rrq:          '#D4AF37',
+      onic:         '#FFD23F',
+      evos:         '#38BDF8',
+      dewaunited:   '#C98A2C',
+      geekfam:      '#FF4655',
+    };
+
+    const TEAM_NAMES = {
+      teamliquidid: 'Team Liquid ID',
+      bigetron:     'Bigetron By Vitality',
+      alterego:     'Alter Ego Esports',
+      navi:         'Natus Vincere',
+      rrq:          'RRQ Hoshi',
+      onic:         'ONIC Esports',
+      evos:         'EVOS Esports',
+      dewaunited:   'Dewa United Esports',
+      geekfam:      'Geek Fam ID',
+    };
+
+    const TIER_CLASS = { S: 'tier-s', A: 'tier-a', B: 'tier-b', C: 'tier-c' };
+    const TIER_GROUPS = { S:[], A:[], B:[], C:[] };
+    RANKINGS.forEach(r => TIER_GROUPS[r.tier].push(r));
+
+    function renderRankIcon(rank) {
+      const icons = { 1:'🥇', 2:'🥈', 3:'🥉' };
+      return icons[rank] || rank;
+    }
+
+    function renderCard(r) {
+      const color  = TEAM_COLORS[r.id] || '#94A3B8';
+      const name   = TEAM_NAMES[r.id]  || r.id;
+      const rankClass = r.rank <= 3 ? `rank-${r.rank}` : 'rank-other';
+      const tierCls   = TIER_CLASS[r.tier];
+      const barPct    = r.score;
+
+      const tagsHtml = r.tags.map(t =>
+        `<span class="pr-tag ${tierCls}">${t}</span>`
+      ).join('');
+
+      return `
+        <div class="pr-card" style="border-left-color:${color};">
+          <div class="pr-rank ${rankClass}">${renderRankIcon(r.rank)}</div>
+          <div class="pr-info">
+            <a href="team-detail.html?id=${r.id}" style="text-decoration:none;">
+              <div class="pr-name" style="color:${color};">${name}</div>
+            </a>
+            <div class="pr-tags">${tagsHtml}</div>
+            <div style="font-family:var(--font-mono);font-size:0.625rem;color:var(--color-text-muted);margin-top:3px;">${r.notes}</div>
+          </div>
+          <div class="pr-score-col">
+            <div class="pr-score-val" style="color:${color};">${r.score}</div>
+            <div class="pr-score-lbl">Power</div>
+          </div>
+          <div class="pr-bar-col">
+            <div class="pr-tier-label ${tierCls} pr-tag">Tier ${r.tier}</div>
+            <div class="pr-bar-bg">
+              <div class="pr-bar-fill" style="width:0%; background:${color};" data-width="${barPct}"></div>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    const container = document.getElementById('ranking-list');
+    ['S','A','B','C'].forEach(tier => {
+      const teams = TIER_GROUPS[tier];
+      if (!teams.length) return;
+      container.innerHTML += `<div class="tier-section-label">Tier ${tier}</div>`;
+      teams.forEach(r => { container.innerHTML += renderCard(r); });
+    });
+
+    // Animasi bar setelah render
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.querySelectorAll('.pr-bar-fill[data-width]').forEach(el => {
+          el.style.width = el.dataset.width + '%';
+        });
+      });
+    });
+  </script>
+</body>
+</html>

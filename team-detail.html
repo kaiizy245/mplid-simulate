@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detail Tim — MPL ID Simulate</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar__brand">MPL ID <span>Simulate</span></div>
+    <ul class="navbar__tabs">
+      <li class="navbar__tab is-active"><a href="index.html">Teams</a></li>
+      <li class="navbar__tab"><a href="players.html">Players</a></li>
+      <li class="navbar__tab"><a href="schedule.html">Schedule</a></li>
+      <li class="navbar__tab"><a href="standings.html">Standings</a></li>
+      <li class="navbar__tab"><a href="playoff.html">Playoff</a></li>
+      <li class="navbar__tab"><a href="stats.html">Stats</a></li>
+      <li class="navbar__tab"><a href="analytics.html">Analytics</a></li>
+    </ul>
+  </nav>
+
+  <main class="container" style="padding-top: 40px; padding-bottom: 40px;">
+    <a href="index.html" class="text-muted">&larr; Kembali ke Teams</a>
+
+    <div id="team-header" style="margin-top: 16px; margin-bottom: 32px;">
+      <p class="text-muted">Memuat data tim...</p>
+    </div>
+
+    <h2 style="margin-bottom: 16px;">Roster</h2>
+    <div id="roster-grid" class="card-grid" style="margin-bottom: 40px;">
+      <p class="text-muted">Memuat roster...</p>
+    </div>
+
+    <h2 style="margin-bottom: 16px;">Jadwal Tim</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Tanggal</th>
+            <th>Lawan</th>
+            <th>Skor</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="jadwal-tim-body">
+          <tr><td colspan="4" class="text-muted">Memuat jadwal...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="sim.js"></script>
+  <script>
+    function formatTanggal(dateStr) {
+      const opsi = { day: 'numeric', month: 'short', year: 'numeric' };
+      return new Date(dateStr).toLocaleDateString('id-ID', opsi);
+    }
+
+    async function loadTeamDetail() {
+      const teamId = new URLSearchParams(window.location.search).get('id');
+      const header = document.getElementById('team-header');
+      const rosterGrid = document.getElementById('roster-grid');
+      const jadwalBody = document.getElementById('jadwal-tim-body');
+
+      if (!teamId) {
+        header.innerHTML = '<p class="text-muted">Tim tidak ditemukan. Buka halaman ini lewat kartu tim di Teams.</p>';
+        rosterGrid.innerHTML = '';
+        jadwalBody.innerHTML = '';
+        return;
+      }
+
+      try {
+        const [teamsRes, players, schedule] = await Promise.all([
+          fetch('teams.json'),
+          getPlayerStatsGabungan(),
+          getScheduleGabungan()
+        ]);
+        const teams = await teamsRes.json();
+        const team = teams.find(t => t.id === teamId);
+        const namaTim = id => teams.find(t => t.id === id)?.name || id;
+        const timBerwarna = id => {
+          const t = teams.find(t => t.id === id);
+          return t ? `<span style="color: ${t.color};">${t.name}</span>` : id;
+        };
+
+        if (!team) {
+          header.innerHTML = '<p class="text-muted">Tim tidak ditemukan.</p>';
+          rosterGrid.innerHTML = '';
+          jadwalBody.innerHTML = '';
+          return;
+        }
+
+        header.innerHTML = `<h1 style="color: ${team.color};">${team.name}</h1>`;
+
+        // Roster
+        const rosterTim = players.filter(p => p.team_id === teamId);
+        rosterGrid.innerHTML = '';
+        rosterTim.forEach(player => {
+          const card = document.createElement('a');
+          card.className = 'card';
+          card.href = `player-detail.html?id=${player.id}`;
+          card.style.display = 'block';
+          card.innerHTML = `
+            <h3 class="card__title">${player.name}</h3>
+            <span class="badge">${player.role}</span>
+            <p class="card__meta">MVP: ${player.stats.mvp_count}</p>
+          `;
+          rosterGrid.appendChild(card);
+        });
+
+        // Jadwal tim ini saja
+        const jadwalTim = schedule.filter(m => m.team_a === teamId || m.team_b === teamId);
+        jadwalBody.innerHTML = '';
+        jadwalTim.forEach(match => {
+          const isTimA = match.team_a === teamId;
+          const lawanId = isTimA ? match.team_b : match.team_a;
+          const skorSendiri = isTimA ? match.score_a : match.score_b;
+          const skorLawan = isTimA ? match.score_b : match.score_a;
+
+          let skorClass = '';
+          if (match.status === 'finished' && skorSendiri !== skorLawan) {
+            skorClass = skorSendiri > skorLawan ? 'score-win' : 'score-loss';
+          }
+
+          const statusHtml = match.status === 'live'
+            ? '<span class="status-live">LIVE</span>'
+            : match.status === 'finished' ? 'Selesai' : 'Akan Datang';
+
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${formatTanggal(match.date)}</td>
+            <td>vs ${timBerwarna(lawanId)}</td>
+            <td class="${skorClass}">${skorSendiri} &ndash; ${skorLawan}</td>
+            <td>${statusHtml}</td>
+          `;
+          jadwalBody.appendChild(row);
+        });
+
+        if (jadwalTim.length === 0) {
+          jadwalBody.innerHTML = '<tr><td colspan="4" class="text-muted">Belum ada jadwal untuk tim ini.</td></tr>';
+        }
+      } catch (err) {
+        header.innerHTML = '<p class="text-muted">Gagal memuat data. Pastikan file dibuka lewat local server.</p>';
+        console.error(err);
+      }
+    }
+
+    loadTeamDetail();
+  </script>
+
+</body>
+</html>

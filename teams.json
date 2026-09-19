@@ -1,0 +1,11 @@
+[
+  { "id": "alterego", "name": "Alter Ego Esports", "logo": "alterego.png", "color": "#8C2F39", "wins": 0, "losses": 0, "points": 0 },
+  { "id": "bigetron", "name": "Bigetron By Vitality", "logo": "bigetron.png", "color": "#E63946", "wins": 0, "losses": 0, "points": 0 },
+  { "id": "dewaunited", "name": "Dewa United Esports", "logo": "dewaunited.png", "color": "#C98A2C", "wins": 0, "losses": 0, "points": 0 },
+  { "id": "evos", "name": "EVOS Esports", "logo": "evos.png", "color": "#38BDF8", "wins": 0, "losses": 0, "points": 0 },
+  { "id": "geekfam", "name": "Geek Fam ID", "logo": "geekfam.png", "color": "#FF4655", "wins": 0, "losses": 0, "points": 0 },
+  { "id": "navi", "name": "Natus Vincere", "logo": "navi.png", "color": "#F2F2F2", "wins": 0, "losses": 0, "points": 0 },
+  { "id": "onic", "name": "ONIC Esports", "logo": "onic.png", "color": "#FFD23F", "wins": 0, "losses": 0, "points": 0 },
+  { "id": "rrq", "name": "RRQ Hoshi", "logo": "rrq.png", "color": "#D4AF37", "wins": 0, "losses": 0, "points": 0 },
+  { "id": "teamliquidid", "name": "Team Liquid ID", "logo": "teamliquidid.png", "color": "#1D3461", "wins": 0, "losses": 0, "points": 0 }
+]

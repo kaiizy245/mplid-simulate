@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Playoff — MPL ID Simulate</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Lock */
+    .lock-screen { text-align:center; padding:64px 24px; border:1px solid var(--color-border); border-radius:var(--radius-md); background:var(--color-surface); }
+    .lock-icon  { font-size:2.5rem; margin-bottom:14px; }
+    .lock-title { font-family:var(--font-mono); font-size:1rem; font-weight:700; color:var(--color-text-bright,#F0F4F8); margin-bottom:6px; }
+    .lock-desc  { font-family:var(--font-mono); font-size:0.8125rem; color:var(--color-text-muted); margin-bottom:20px; line-height:1.8; }
+    .prog-wrap  { max-width:320px; margin:0 auto 20px; }
+    .prog-lbl   { font-family:var(--font-mono); font-size:0.5625rem; color:var(--color-text-muted); margin-bottom:6px; display:flex; justify-content:space-between; }
+    .prog-bg    { height:4px; background:var(--color-border); border-radius:2px; overflow:hidden; }
+    .prog-fill  { height:100%; background:var(--color-cyan,#38BDF8); border-radius:2px; transition:width .4s ease; }
+
+    /* Bracket wrapper */
+    .bracket-scroll { overflow-x:auto; padding-bottom:20px; }
+    .bracket-canvas { display:flex; flex-direction:column; gap:0; min-width:900px; position:relative; }
+
+    /* Zone label */
+    .zone-lbl {
+      font-family:var(--font-mono); font-size:0.5rem;
+      letter-spacing:.16em; text-transform:uppercase;
+      color:var(--color-text-muted); padding:10px 0 6px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .zone-lbl::before { content:""; display:block; width:12px; height:2px; border-radius:1px; }
+    .zone-lbl.ub::before { background:var(--color-cyan,#38BDF8); }
+    .zone-lbl.lb::before { background:var(--color-red,#F87171); }
+    .zone-lbl.gf::before { background:var(--color-amber,#F59E0B); }
+    .zone-lbl::after { content:""; flex:1; height:1px; background:var(--color-border); }
+
+    /* Round row */
+    .round-row { display:flex; align-items:stretch; }
+    .round-col { display:flex; flex-direction:column; width:196px; flex-shrink:0; }
+    .round-hd  {
+      font-family:var(--font-mono); font-size:0.4375rem;
+      letter-spacing:.14em; text-transform:uppercase;
+      color:var(--color-text-muted); text-align:center;
+      padding:6px 8px 8px; border-bottom:1px solid var(--color-border);
+      margin-bottom:10px;
+    }
+    .matches-col { display:flex; flex-direction:column; flex:1; justify-content:space-around; padding:0 0 10px; }
+
+    /* Connector SVG column */
+    .conn-col { width:32px; flex-shrink:0; position:relative; display:flex; flex-direction:column; justify-content:center; }
+    .conn-col svg { width:32px; display:block; }
+
+    /* Match card */
+    .mc {
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:4px; overflow:hidden; margin:4px 8px;
+      transition:border-color .1s;
+    }
+    .mc:hover { border-color:var(--color-border-bright,#2E3D50); }
+    .mc.win-left  { border-left:2px solid var(--color-green,#22C55E); }
+    .mc.gf-card   { border-left:2px solid var(--color-amber,#F59E0B); }
+
+    .mc-hd {
+      font-family:var(--font-mono); font-size:0.375rem;
+      letter-spacing:.12em; text-transform:uppercase;
+      color:var(--color-text-muted); padding:4px 8px;
+      background:var(--color-surface-2,#111820);
+      border-bottom:1px solid var(--color-border);
+    }
+
+    .mc-row {
+      display:flex; align-items:center; gap:5px;
+      padding:7px 8px; border-bottom:1px solid var(--color-border);
+    }
+    .mc-row:last-of-type { border-bottom:none; }
+    .mc-row.winner-row   { background:rgba(34,197,94,0.05); }
+    .mc-row.loser-row    { opacity:.38; }
+
+    .mc-seed {
+      font-family:var(--font-mono); font-size:0.375rem; flex-shrink:0;
+      padding:1px 4px; border-radius:2px;
+      background:rgba(56,189,248,.08); color:var(--color-cyan,#38BDF8);
+      border:1px solid rgba(56,189,248,.18); line-height:1.7;
+    }
+    .mc-name {
+      font-family:var(--font-mono); font-size:0.6875rem; font-weight:600;
+      flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .mc-sc {
+      font-family:var(--font-mono); font-size:0.875rem; font-weight:700;
+      min-width:12px; text-align:right; flex-shrink:0;
+    }
+    .mc-sc.w { color:var(--color-green,#22C55E); }
+    .mc-sc.l { color:var(--color-red,#F87171); }
+
+    .mc-ft {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:4px 8px; background:var(--color-surface-2,#111820);
+    }
+    .mc-fmt { font-family:var(--font-mono); font-size:0.375rem; letter-spacing:.08em; color:var(--color-text-muted); }
+    .mc-sim-btn {
+      font-family:var(--font-mono); font-size:0.4375rem; letter-spacing:.06em; text-transform:uppercase;
+      padding:2px 7px; border-radius:2px;
+      border:1px solid var(--color-cyan,#38BDF8);
+      background:rgba(56,189,248,.06); color:var(--color-cyan,#38BDF8);
+      cursor:pointer; transition:background .1s;
+    }
+    .mc-sim-btn:hover { background:rgba(56,189,248,.16); }
+    .mc-done-tag { font-family:var(--font-mono); font-size:0.375rem; letter-spacing:.08em; color:var(--color-green,#22C55E); }
+    .mc-wait-tag { font-family:var(--font-mono); font-size:0.375rem; letter-spacing:.08em; color:var(--color-text-muted); }
+
+    /* Champion */
+    .champ-wrap { max-width:340px; margin:28px auto 0; }
+    .champ-card {
+      border:1px solid var(--color-amber,#F59E0B); border-radius:var(--radius-md);
+      padding:24px; text-align:center;
+      background:linear-gradient(160deg,var(--color-surface),var(--color-surface-2,#111820));
+    }
+    .champ-trophy { font-size:2rem; margin-bottom:8px; }
+    .champ-lbl { font-family:var(--font-mono); font-size:0.4375rem; letter-spacing:.16em; text-transform:uppercase; color:var(--color-amber,#F59E0B); margin-bottom:6px; }
+    .champ-name { font-family:var(--font-mono); font-size:1.25rem; font-weight:700; }
+
+    /* Divider between UB and LB */
+    .zone-divider { height:1px; background:var(--color-border); margin:16px 0; }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar__brand">MPL ID <span>Simulate</span></div>
+    <ul class="navbar__tabs">
+      <li class="navbar__tab"><a href="home.html">Home</a></li>
+      <li class="navbar__tab"><a href="index.html">Teams</a></li>
+      <li class="navbar__tab"><a href="players.html">Players</a></li>
+      <li class="navbar__tab"><a href="schedule.html">Schedule</a></li>
+      <li class="navbar__tab"><a href="standings.html">Standings</a></li>
+      <li class="navbar__tab is-active">Playoff</li>
+      <li class="navbar__tab"><a href="analytics.html">Analytics</a></li>
+      <li class="navbar__tab"><a href="power-ranking.html">Power Ranking</a></li>
+    </ul>
+  </nav>
+
+  <main class="container" style="padding-top:36px;padding-bottom:56px;">
+    <h1 data-type="Playoff">Playoff</h1>
+    <p class="text-muted" style="margin-top:8px;margin-bottom:24px;">
+      Hybrid double elimination · 6 tim · Seed 1&2 masuk di UB Semifinals · LBF & GF = Bo7.
+    </p>
+
+    <div id="lock-screen" style="display:none;"></div>
+
+    <div id="playoff-content" style="display:none;">
+      <div style="margin-bottom:20px;display:flex;gap:8px;">
+        <button id="btn-reset" class="btn">Reset Playoff</button>
+      </div>
+
+      <div class="bracket-scroll">
+        <div class="bracket-canvas" id="bracket-canvas"></div>
+      </div>
+
+      <div class="champ-wrap" id="champ-block"></div>
+    </div>
+  </main>
+
+  <script src="sim.js"></script>
+  <script src="terminal.js"></script>
+  <script>
+    const PK = 'mplid_playoff_results';
+    const getPR  = () => { try{ return JSON.parse(localStorage.getItem(PK))||{}; }catch(e){ return{}; } };
+    const savePR = d => localStorage.setItem(PK, JSON.stringify(d));
+
+    let teams = [];
+    const nm = id => teams.find(t=>t.id===id)?.name || 'TBD';
+    const cl = id => teams.find(t=>t.id===id)?.color || 'var(--color-text-bright,#F0F4F8)';
+
+    /* Match definitions (hybrid: seed 1&2 start at UB Semis) */
+    const DEFS = {
+      ubqf1: { lbl:'UBQF 1', fmt:'Bo5', a:{t:'seed',n:3}, b:{t:'seed',n:6} },
+      ubqf2: { lbl:'UBQF 2', fmt:'Bo5', a:{t:'seed',n:4}, b:{t:'seed',n:5} },
+      ubsf1: { lbl:'UBSF 1', fmt:'Bo5', a:{t:'seed',n:1}, b:{t:'match',id:'ubqf2',r:'winner'} },
+      ubsf2: { lbl:'UBSF 2', fmt:'Bo5', a:{t:'seed',n:2}, b:{t:'match',id:'ubqf1',r:'winner'} },
+      ubf:   { lbl:'UB Final', fmt:'Bo5', a:{t:'match',id:'ubsf1',r:'winner'}, b:{t:'match',id:'ubsf2',r:'winner'} },
+      lbr1:  { lbl:'LBR1', fmt:'Bo5', a:{t:'match',id:'ubsf1',r:'loser'},  b:{t:'match',id:'ubsf2',r:'loser'} },
+      lbf:   { lbl:'LB Final', fmt:'Bo7', a:{t:'match',id:'ubf',r:'loser'},    b:{t:'match',id:'lbr1',r:'winner'} },
+      gf:    { lbl:'Grand Final', fmt:'Bo7', a:{t:'match',id:'ubf',r:'winner'},   b:{t:'match',id:'lbf',r:'winner'} },
+    };
+
+    function resolveSlot(s, seeds, pr) {
+      if (s.t === 'seed') return seeds[s.n-1] || null;
+      const h = pr[s.id]; if(!h) return null;
+      return s.r === 'winner' ? h.winner : h.loser;
+    }
+
+    /* Build single match card HTML */
+    function card(defId, seeds, pr, isGF=false) {
+      const def = DEFS[defId];
+      const h   = pr[defId];
+      const tA  = resolveSlot(def.a, seeds, pr);
+      const tB  = resolveSlot(def.b, seeds, pr);
+      const sA  = def.a.t==='seed' ? def.a.n : null;
+      const sB  = def.b.t==='seed' ? def.b.n : null;
+
+      const row = (tid, seed, isA) => {
+        if (!tid) return `<div class="mc-row"><span class="mc-name" style="color:var(--color-text-muted);">${seed?'#'+seed+' ':''}TBD</span></div>`;
+        const sc = h ? (isA ? h.score_a : h.score_b) : null;
+        const scO= h ? (isA ? h.score_b : h.score_a) : null;
+        const won= h && h.winner===tid;
+        const cls= h ? (won?'mc-row winner-row':'mc-row loser-row') : 'mc-row';
+        return `<div class="${cls}">
+          ${seed?`<span class="mc-seed">#${seed}</span>`:''}
+          <span class="mc-name" style="color:${cl(tid)};">${nm(tid)}</span>
+          ${sc!==null?`<span class="mc-sc ${sc>scO?'w':'l'}">${sc}</span>`:''}
+        </div>`;
+      };
+
+      const state = h?'done':(tA&&tB?'ready':'pending');
+      let footer='';
+      if(state==='done'){
+        footer=`<div class="mc-ft"><span class="mc-fmt">${def.fmt}</span><span class="mc-done-tag">■ DONE</span></div>`;
+      } else if(state==='ready'){
+        footer=`<div class="mc-ft"><span class="mc-fmt">${def.fmt}</span><button class="mc-sim-btn" onclick="sim('${defId}','${def.fmt}','${tA}','${tB}')">SIM</button></div>`;
+      } else {
+        footer=`<div class="mc-ft"><span class="mc-fmt">${def.fmt}</span><span class="mc-wait-tag">WAITING...</span></div>`;
+      }
+
+      return `<div class="mc ${h?'win-left':''} ${isGF?'gf-card':''}">
+        <div class="mc-hd">${def.lbl}</div>
+        ${row(tA,sA,true)}${row(tB,sB,false)}
+        ${footer}
+      </div>`;
+    }
+
+    /* SVG connector: merge two cards into one */
+    function connY(h1, h2) {
+      const mid = (h1+h2)/2;
+      return `<svg height="${h2+20}" style="overflow:visible;display:block;">
+        <line x1="0" y1="${h1}" x2="16" y2="${h1}" stroke="var(--color-border)" stroke-width="1"/>
+        <line x1="0" y1="${h2}" x2="16" y2="${h2}" stroke="var(--color-border)" stroke-width="1"/>
+        <line x1="16" y1="${h1}" x2="16" y2="${h2}" stroke="var(--color-border)" stroke-width="1"/>
+        <line x1="16" y1="${mid}" x2="32" y2="${mid}" stroke="var(--color-border)" stroke-width="1"/>
+      </svg>`;
+    }
+    function connH() {
+      return `<svg height="60" style="overflow:visible;display:block;">
+        <line x1="0" y1="30" x2="32" y2="30" stroke="var(--color-border)" stroke-width="1"/>
+      </svg>`;
+    }
+
+    /* Full bracket render */
+    function render(seeds, pr) {
+      const canvas = document.getElementById('bracket-canvas');
+      canvas.innerHTML = '';
+
+      /* ── UPPER BRACKET ── */
+      const ubDiv = document.createElement('div');
+
+      const ubLabel = document.createElement('div');
+      ubLabel.className = 'zone-lbl ub';
+      ubLabel.textContent = 'Upper Bracket';
+      ubDiv.appendChild(ubLabel);
+
+      // UB row: QF | conn | SF | conn | UBF
+      const ubRow = document.createElement('div');
+      ubRow.className = 'round-row';
+      ubRow.style.alignItems = 'center';
+
+      // QF col
+      const qfCol = document.createElement('div');
+      qfCol.className = 'round-col';
+      qfCol.innerHTML = `<div class="round-hd">Quarterfinals</div>
+        <div class="matches-col">
+          ${card('ubqf1',seeds,pr)}
+          ${card('ubqf2',seeds,pr)}
+        </div>`;
+
+      // Connector QF→SF
+      const connQFSF = document.createElement('div');
+      connQFSF.className = 'conn-col';
+      connQFSF.style.paddingTop = '28px';
+      connQFSF.innerHTML = connY(55, 145);
+
+      // SF col
+      const sfCol = document.createElement('div');
+      sfCol.className = 'round-col';
+      sfCol.innerHTML = `<div class="round-hd">Semifinals</div>
+        <div class="matches-col">
+          ${card('ubsf1',seeds,pr)}
+          ${card('ubsf2',seeds,pr)}
+        </div>`;
+
+      // Connector SF→UBF
+      const connSFUBF = document.createElement('div');
+      connSFUBF.className = 'conn-col';
+      connSFUBF.style.paddingTop = '28px';
+      connSFUBF.innerHTML = connY(55, 145);
+
+      // UBF col
+      const ubfCol = document.createElement('div');
+      ubfCol.className = 'round-col';
+      ubfCol.innerHTML = `<div class="round-hd">UB Final</div>
+        <div class="matches-col" style="justify-content:center;">
+          ${card('ubf',seeds,pr)}
+        </div>`;
+
+      ubRow.append(qfCol, connQFSF, sfCol, connSFUBF, ubfCol);
+      ubDiv.appendChild(ubRow);
+      canvas.appendChild(ubDiv);
+
+      /* divider */
+      const div1 = document.createElement('div');
+      div1.className = 'zone-divider';
+      canvas.appendChild(div1);
+
+      /* ── LOWER BRACKET ── */
+      const lbDiv = document.createElement('div');
+
+      const lbLabel = document.createElement('div');
+      lbLabel.className = 'zone-lbl lb';
+      lbLabel.textContent = 'Lower Bracket';
+      lbDiv.appendChild(lbLabel);
+
+      const lbRow = document.createElement('div');
+      lbRow.className = 'round-row';
+      lbRow.style.alignItems = 'center';
+
+      const makeCol = (roundName, cardIds) => {
+        const col = document.createElement('div');
+        col.className = 'round-col';
+        col.innerHTML = `<div class="round-hd">${roundName}</div>
+          <div class="matches-col" style="justify-content:center;">
+            ${cardIds.map(id=>card(id,seeds,pr)).join('')}
+          </div>`;
+        return col;
+      };
+      const makeConnH = () => {
+        const c = document.createElement('div');
+        c.className = 'conn-col';
+        c.innerHTML = connH();
+        return c;
+      };
+
+      lbRow.append(
+        makeCol('LB Ronde 1', ['lbr1']),
+        makeConnH(),
+        makeCol('LB Final',   ['lbf']),
+      );
+      lbDiv.appendChild(lbRow);
+      canvas.appendChild(lbDiv);
+
+      /* divider */
+      const div2 = document.createElement('div');
+      div2.className = 'zone-divider';
+      canvas.appendChild(div2);
+
+      /* ── GRAND FINAL ── */
+      const gfDiv = document.createElement('div');
+      const gfLabel = document.createElement('div');
+      gfLabel.className = 'zone-lbl gf';
+      gfLabel.textContent = 'Grand Final';
+      gfDiv.appendChild(gfLabel);
+
+      const gfWrap = document.createElement('div');
+      gfWrap.style.maxWidth = '220px';
+      gfWrap.innerHTML = card('gf', seeds, pr, true);
+      gfDiv.appendChild(gfWrap);
+      canvas.appendChild(gfDiv);
+
+      /* Champion */
+      const champ = pr['gf'];
+      document.getElementById('champ-block').innerHTML = champ
+        ? `<div class="champ-card">
+            <div class="champ-trophy">🏆</div>
+            <div class="champ-lbl">MPL ID S18 Champion</div>
+            <div class="champ-name" style="color:${cl(champ.winner)};">${nm(champ.winner)}</div>
+          </div>`
+        : '';
+    }
+
+    /* ── Simulate ── */
+    async function sim(defId, fmt, tA, tB) {
+      const pr   = getPR();
+      const skor = randomSkor(fmt, tA, tB);
+      const aWin = skor.score_a > skor.score_b;
+      pr[defId]  = { winner:aWin?tA:tB, loser:aWin?tB:tA, score_a:skor.score_a, score_b:skor.score_b, team_a:tA, team_b:tB };
+      savePR(pr);
+      const games = Array.from({length:skor.score_a+skor.score_b},(_,i)=>({
+        game:i+1, winner:aWin?tA:tB,
+        draft:{bans_a:[],bans_b:[],picks_a:[],picks_b:[]}
+      }));
+      await generateDetailedStatsForMatch(defId,'playoff',tA,tB,games);
+      await load();
+    }
+
+    /* ── Load & lock check ── */
+    async function load() {
+      const [tr, schedule] = await Promise.all([fetch('teams.json'), getScheduleGabungan()]);
+      teams = await tr.json();
+
+      const total  = schedule.length;
+      const done   = schedule.filter(m=>m.status==='finished').length;
+      const locked = done < total;
+
+      document.getElementById('lock-screen').style.display    = locked ? 'block' : 'none';
+      document.getElementById('playoff-content').style.display = locked ? 'none' : 'block';
+
+      if (locked) {
+        const pct = Math.round(done/total*100);
+        document.getElementById('lock-screen').innerHTML = `
+          <div class="lock-screen">
+            <div class="lock-icon">🔒</div>
+            <div class="lock-title">Playoff Terkunci</div>
+            <div class="lock-desc">Selesaikan semua simulasi regular season terlebih dahulu.<br>
+              Sisa <strong style="color:var(--color-cyan,#38BDF8);">${total-done}</strong> pertandingan.</div>
+            <div class="prog-wrap">
+              <div class="prog-lbl"><span>Progress Simulasi</span><span>${done} / ${total}</span></div>
+              <div class="prog-bg"><div class="prog-fill" style="width:${pct}%;"></div></div>
+            </div>
+            <a href="schedule.html" class="btn btn--primary" style="display:inline-block;">Ke Schedule →</a>
+          </div>`;
+        return;
+      }
+
+      /* Build seeds from standings */
+      const stats = {};
+      teams.forEach(t=>{ stats[t.id]={id:t.id,pts:0,gd:0}; });
+      schedule.filter(m=>m.status==='finished').forEach(m=>{
+        const a=stats[m.team_a],b=stats[m.team_b];
+        if(!a||!b) return;
+        a.gd+=m.score_a-m.score_b; b.gd+=m.score_b-m.score_a;
+        if(m.score_a>m.score_b) a.pts++;
+        else if(m.score_b>m.score_a) b.pts++;
+      });
+      const seeds = Object.values(stats)
+        .sort((x,y)=>y.pts!==x.pts?y.pts-x.pts:y.gd-x.gd)
+        .slice(0,6).map(t=>t.id);
+
+      render(seeds, getPR());
+    }
+
+    document.getElementById('btn-reset').addEventListener('click',()=>{
+      localStorage.removeItem(PK); load();
+    });
+
+    load();
+  </script>
+</body>
+</html>

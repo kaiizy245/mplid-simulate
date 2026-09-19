@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detail Pemain — MPL ID Simulate</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar__brand">MPL ID <span>Simulate</span></div>
+    <ul class="navbar__tabs">
+      <li class="navbar__tab"><a href="index.html">Teams</a></li>
+      <li class="navbar__tab is-active"><a href="players.html">Players</a></li>
+      <li class="navbar__tab"><a href="schedule.html">Schedule</a></li>
+      <li class="navbar__tab"><a href="standings.html">Standings</a></li>
+      <li class="navbar__tab"><a href="playoff.html">Playoff</a></li>
+      <li class="navbar__tab"><a href="stats.html">Stats</a></li>
+      <li class="navbar__tab"><a href="analytics.html">Analytics</a></li>
+    </ul>
+  </nav>
+
+  <main class="container" style="padding-top: 40px; padding-bottom: 40px;">
+    <a href="players.html" class="text-muted">&larr; Kembali ke Players</a>
+
+    <div id="player-header" style="margin-top: 16px; margin-bottom: 32px;">
+      <p class="text-muted">Memuat data pemain...</p>
+    </div>
+
+    <h2 style="margin-bottom: 16px;">Statistik</h2>
+    <div id="stats-grid" class="card-grid">
+      <p class="text-muted">Memuat statistik...</p>
+    </div>
+  </main>
+
+  <script src="sim.js"></script>
+  <script>
+    async function loadPlayerDetail() {
+      const playerId = new URLSearchParams(window.location.search).get('id');
+      const header = document.getElementById('player-header');
+      const statsGrid = document.getElementById('stats-grid');
+
+      if (!playerId) {
+        header.innerHTML = '<p class="text-muted">Pemain tidak ditemukan. Buka halaman ini lewat kartu pemain di Players.</p>';
+        statsGrid.innerHTML = '';
+        return;
+      }
+
+      try {
+        const [teamsRes, players] = await Promise.all([
+          fetch('teams.json'),
+          getPlayerStatsGabungan()
+        ]);
+        const teams = await teamsRes.json();
+        const player = players.find(p => p.id === playerId);
+
+        if (!player) {
+          header.innerHTML = '<p class="text-muted">Pemain tidak ditemukan.</p>';
+          statsGrid.innerHTML = '';
+          return;
+        }
+
+        const team = teams.find(t => t.id === player.team_id);
+        const teamLink = team
+          ? `<a href="team-detail.html?id=${team.id}" style="color: ${team.color};">${team.name}</a>`
+          : player.team_id;
+
+        header.innerHTML = `
+          <h1>${player.name}</h1>
+          <p class="text-muted" style="margin-top: 4px;">
+            <span class="badge">${player.role}</span>
+            &nbsp;&middot;&nbsp; ${teamLink}
+          </p>
+        `;
+
+        const { kills, deaths, assists, mvp_count } = player.stats;
+        const kda = deaths === 0
+          ? (kills + assists).toFixed(2)
+          : ((kills + assists) / deaths).toFixed(2);
+
+        const statItems = [
+          { label: 'Kills', value: kills },
+          { label: 'Deaths', value: deaths },
+          { label: 'Assists', value: assists },
+          { label: 'KDA', value: kda },
+          { label: 'MVP', value: mvp_count }
+        ];
+
+        statsGrid.innerHTML = '';
+        statItems.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <p class="stat-number">${item.value}</p>
+            <p class="card__meta">${item.label}</p>
+          `;
+          statsGrid.appendChild(card);
+        });
+      } catch (err) {
+        header.innerHTML = '<p class="text-muted">Gagal memuat data. Pastikan file dibuka lewat local server.</p>';
+        console.error(err);
+      }
+    }
+
+    loadPlayerDetail();
+  </script>
+
+</body>
+</html>

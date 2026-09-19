@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Standings — MPL ID Simulate</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .standings-row {
+      display: grid;
+      grid-template-columns: 32px 1fr 48px 48px 48px 64px 72px;
+      align-items: center;
+      gap: 0;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--color-border);
+      transition: background 0.1s;
+    }
+    .standings-row:hover { background: var(--color-surface-hover, #161D27); }
+    .standings-row:last-child { border-bottom: none; }
+    .standings-row.playoff-cut { border-bottom: 2px solid var(--color-cyan, #38BDF8); }
+    .standings-row.eliminated { opacity: 0.55; }
+
+    .col-rank {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      text-align: center;
+    }
+    .col-rank.r1 { color: var(--color-amber,#F59E0B); font-weight:700; }
+    .col-rank.r2 { color: #94A3B8; font-weight:700; }
+    .col-rank.r3 { color: #A0785A; font-weight:700; }
+
+    .col-team { display: flex; align-items: center; gap: 10px; }
+    .team-stripe { width: 3px; height: 28px; border-radius: 2px; flex-shrink: 0; }
+    .team-name { font-family: var(--font-mono); font-size: 0.875rem; font-weight: 600; }
+    .team-tag { font-family: var(--font-mono); font-size: 0.5625rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-muted); margin-top: 2px; }
+
+    .col-num {
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      text-align: center;
+      color: var(--color-text-muted);
+    }
+    .col-pts {
+      font-family: var(--font-mono);
+      font-size: 0.9375rem;
+      font-weight: 700;
+      text-align: center;
+      color: var(--color-text-bright, #F0F4F8);
+    }
+
+    /* Win rate bar */
+    .col-wr { display: flex; align-items: center; gap: 6px; }
+    .wr-bar { flex: 1; height: 4px; background: var(--color-border); border-radius: 2px; overflow: hidden; }
+    .wr-fill { height: 100%; border-radius: 2px; background: var(--color-green, #22C55E); }
+    .wr-pct { font-family: var(--font-mono); font-size: 0.625rem; color: var(--color-text-muted); width: 28px; }
+
+    /* Form streak (W/L) */
+    .form-streak { display: flex; gap: 3px; }
+    .form-dot {
+      width: 10px; height: 10px; border-radius: 2px;
+      font-family: var(--font-mono); font-size: 0.4375rem;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700;
+    }
+    .form-dot.w { background: rgba(34,197,94,0.2); color: var(--color-green,#22C55E); }
+    .form-dot.l { background: rgba(248,113,113,0.15); color: var(--color-red,#F87171); }
+
+    .standings-header {
+      display: grid;
+      grid-template-columns: 32px 1fr 48px 48px 48px 64px 72px;
+      gap: 0;
+      padding: 8px 16px;
+      background: var(--color-surface-2, #111820);
+      border-bottom: 1px solid var(--color-border);
+    }
+    .header-col {
+      font-family: var(--font-mono);
+      font-size: 0.5625rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      text-align: center;
+    }
+    .header-col.left { text-align: left; }
+
+    .zone-label {
+      font-family: var(--font-mono);
+      font-size: 0.5rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: var(--radius-sm);
+    }
+    .zone-playoff { background: rgba(56,189,248,0.1); color: var(--color-cyan,#38BDF8); border: 1px solid rgba(56,189,248,0.2); }
+    .zone-elim    { background: rgba(248,113,113,0.08); color: var(--color-red,#F87171); border: 1px solid rgba(248,113,113,0.15); }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 0.625rem; color: var(--color-text-muted); }
+    .legend-line { width: 24px; height: 2px; }
+
+    @media(max-width:600px){
+      .standings-row, .standings-header {
+        grid-template-columns: 28px 1fr 36px 36px 52px;
+      }
+      .col-wr, .header-col:nth-child(5) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar__brand">MPL ID <span>Simulate</span></div>
+    <ul class="navbar__tabs">
+      <li class="navbar__tab"><a href="home.html">Home</a></li>
+      <li class="navbar__tab"><a href="index.html">Teams</a></li>
+      <li class="navbar__tab"><a href="players.html">Players</a></li>
+      <li class="navbar__tab"><a href="schedule.html">Schedule</a></li>
+      <li class="navbar__tab is-active">Standings</li>
+      <li class="navbar__tab"><a href="playoff.html">Playoff</a></li>
+      <li class="navbar__tab"><a href="analytics.html">Analytics</a></li>
+    </ul>
+  </nav>
+
+  <main class="container" style="padding-top:36px; padding-bottom:48px;">
+    <h1 data-type="Standings">Standings</h1>
+    <p class="text-muted" style="margin-top:8px; margin-bottom:20px;">
+      Klasemen dihitung otomatis dari hasil pertandingan. Garis biru = batas playoff (top 6).
+    </p>
+
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-item"><div class="legend-line" style="background:var(--color-cyan,#38BDF8);"></div>Batas Playoff</div>
+      <div class="legend-item"><div class="form-dot w">W</div>Menang</div>
+      <div class="legend-item"><div class="form-dot l">L</div>Kalah</div>
+    </div>
+
+    <div id="standings-wrap" class="table-wrap">
+      <div class="standings-header">
+        <div class="header-col">#</div>
+        <div class="header-col left">Tim</div>
+        <div class="header-col">M</div>
+        <div class="header-col">W</div>
+        <div class="header-col">L</div>
+        <div class="header-col">Win%</div>
+        <div class="header-col">Pts</div>
+      </div>
+      <div id="standings-body"><p class="text-muted" style="padding:16px;">Memuat...</p></div>
+    </div>
+  </main>
+
+  <script src="sim.js"></script>
+  <script src="terminal.js"></script>
+  <script>
+    const PLAYOFF_CUT = 6;
+
+    function hitungKlasemen(teams, schedule) {
+      const stats = {};
+      teams.forEach(t => {
+        stats[t.id] = {
+          id: t.id, name: t.name, color: t.color,
+          played: 0, wins: 0, losses: 0, gameDiff: 0, points: 0,
+          form: [] // W/L terakhir 5 match
+        };
+      });
+      schedule.filter(m => m.status === 'finished').forEach(m => {
+        const a = stats[m.team_a], b = stats[m.team_b];
+        if (!a || !b) return;
+        a.played++; b.played++;
+        a.gameDiff += (m.score_a - m.score_b);
+        b.gameDiff += (m.score_b - m.score_a);
+        if (m.score_a > m.score_b) {
+          a.wins++; a.points++; a.form.push('W'); b.losses++; b.form.push('L');
+        } else if (m.score_b > m.score_a) {
+          b.wins++; b.points++; b.form.push('W'); a.losses++; a.form.push('L');
+        }
+      });
+      return Object.values(stats).sort((x, y) =>
+        y.points !== x.points ? y.points - x.points : y.gameDiff - x.gameDiff
+      );
+    }
+
+    function formDots(form) {
+      return form.slice(-5).map(r =>
+        `<div class="form-dot ${r.toLowerCase()}">${r}</div>`
+      ).join('');
+    }
+
+    async function loadStandings() {
+      const [teamsRes, schedule] = await Promise.all([fetch('teams.json'), getScheduleGabungan()]);
+      const teams = await teamsRes.json();
+      const klasemen = hitungKlasemen(teams, schedule);
+      const body = document.getElementById('standings-body');
+      const maxPlayed = Math.max(...klasemen.map(t => t.played), 1);
+
+      body.innerHTML = klasemen.map((tim, i) => {
+        const rank = i + 1;
+        const wr = tim.played > 0 ? Math.round(tim.wins / tim.played * 100) : 0;
+        const isPlayoff = rank <= PLAYOFF_CUT;
+        const rankClass = rank === 1 ? 'r1' : rank === 2 ? 'r2' : rank === 3 ? 'r3' : '';
+        const cutClass = rank === PLAYOFF_CUT ? 'playoff-cut' : !isPlayoff ? 'eliminated' : '';
+
+        const gameDiffStr = tim.gameDiff > 0 ? `+${tim.gameDiff}` : `${tim.gameDiff}`;
+
+        return `
+          <div class="standings-row ${cutClass}">
+            <div class="col-rank ${rankClass}">${rank}</div>
+            <div class="col-team">
+              <div class="team-stripe" style="background:${tim.color};"></div>
+              <div>
+                <a href="team-detail.html?id=${tim.id}" style="text-decoration:none;">
+                  <div class="team-name" style="color:${tim.color};">${tim.name}</div>
+                </a>
+                <div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
+                  <div class="form-streak">${formDots(tim.form)}</div>
+                  <span style="font-family:var(--font-mono);font-size:0.5rem;color:var(--color-text-dim,#2D3748);">${tim.played>0?'form':'—'}</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-num">${tim.played}</div>
+            <div class="col-num" style="color:var(--color-win,#34D399);">${tim.wins}</div>
+            <div class="col-num" style="color:var(--color-loss,#FB7185);">${tim.losses}</div>
+            <div class="col-wr">
+              <div class="wr-bar"><div class="wr-fill" style="width:${wr}%;"></div></div>
+              <span class="wr-pct">${wr}%</span>
+            </div>
+            <div class="col-pts">${tim.points}</div>
+          </div>`;
+      }).join('');
+    }
+
+    loadStandings();
+  </script>
+</body>
+</html>

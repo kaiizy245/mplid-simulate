@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Players — MPL ID Simulate</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar__brand">MPL ID <span>Simulate</span></div>
+    <ul class="navbar__tabs">
+      <li class="navbar__tab"><a href="index.html">Teams</a></li>
+      <li class="navbar__tab is-active">Players</li>
+      <li class="navbar__tab"><a href="schedule.html">Schedule</a></li>
+      <li class="navbar__tab"><a href="standings.html">Standings</a></li>
+      <li class="navbar__tab"><a href="playoff.html">Playoff</a></li>
+      <li class="navbar__tab"><a href="stats.html">Stats</a></li>
+      <li class="navbar__tab"><a href="analytics.html">Analytics</a></li>
+    </ul>
+  </nav>
+
+  <main class="container" style="padding-top: 40px; padding-bottom: 40px;">
+    <h1>Players</h1>
+    <p class="text-muted" style="margin-top: 8px; margin-bottom: 24px;">
+      Roster resmi tiap tim, MPL ID Season 18.
+    </p>
+
+    <div style="display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;">
+      <input
+        type="text"
+        id="search-player"
+        placeholder="Cari nama pemain..."
+        style="flex: 1; min-width: 200px; padding: 10px 14px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-sm); color: var(--color-text); font-family: var(--font-body);"
+      >
+      <select
+        id="filter-role"
+        style="padding: 10px 14px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-sm); color: var(--color-text); font-family: var(--font-body);"
+      >
+        <option value="">Semua Role</option>
+        <option value="EXP Laner">EXP Laner</option>
+        <option value="Jungler">Jungler</option>
+        <option value="Mid Laner">Mid Laner</option>
+        <option value="Gold Laner">Gold Laner</option>
+        <option value="Roamer">Roamer</option>
+      </select>
+    </div>
+
+    <div id="players-list">
+      <p class="text-muted">Memuat data pemain...</p>
+    </div>
+  </main>
+
+  <script src="sim.js"></script>
+  <script>
+    let semuaTeams = [];
+    let semuaPlayers = [];
+
+    function renderPlayers() {
+      const container = document.getElementById('players-list');
+      const kataKunci = document.getElementById('search-player').value.trim().toLowerCase();
+      const roleTerpilih = document.getElementById('filter-role').value;
+
+      const playersTersaring = semuaPlayers.filter(p => {
+        const cocokNama = p.name.toLowerCase().includes(kataKunci);
+        const cocokRole = !roleTerpilih || p.role === roleTerpilih;
+        return cocokNama && cocokRole;
+      });
+
+      container.innerHTML = '';
+      let adaHasil = false;
+
+      semuaTeams.forEach(team => {
+        const teamPlayers = playersTersaring.filter(p => p.team_id === team.id);
+        if (teamPlayers.length === 0) return;
+        adaHasil = true;
+
+        const section = document.createElement('section');
+        section.style.marginBottom = '32px';
+
+        const heading = document.createElement('h2');
+        heading.textContent = team.name;
+        heading.style.marginBottom = '12px';
+        heading.style.color = team.color;
+        section.appendChild(heading);
+
+        const grid = document.createElement('div');
+        grid.className = 'card-grid';
+
+        teamPlayers.forEach(player => {
+          const card = document.createElement('a');
+          card.className = 'card';
+          card.href = `player-detail.html?id=${player.id}`;
+          card.style.display = 'block';
+          card.innerHTML = `
+            <h3 class="card__title">${player.name}</h3>
+            <span class="badge">${player.role}</span>
+            <p class="card__meta">MVP: ${player.stats.mvp_count}</p>
+          `;
+          grid.appendChild(card);
+        });
+
+        section.appendChild(grid);
+        container.appendChild(section);
+      });
+
+      if (!adaHasil) {
+        container.innerHTML = '<p class="text-muted">Tidak ada pemain yang cocok.</p>';
+      }
+    }
+
+    async function loadPlayers() {
+      const container = document.getElementById('players-list');
+      try {
+        const [teamsRes, players] = await Promise.all([
+          fetch('teams.json'),
+          getPlayerStatsGabungan()
+        ]);
+        semuaTeams = await teamsRes.json();
+        semuaPlayers = players;
+        renderPlayers();
+      } catch (err) {
+        container.innerHTML = '<p class="text-muted">Gagal memuat data pemain. Pastikan file dibuka lewat local server, bukan langsung dari file.</p>';
+        console.error(err);
+      }
+    }
+
+    document.getElementById('search-player').addEventListener('input', renderPlayers);
+    document.getElementById('filter-role').addEventListener('change', renderPlayers);
+
+    loadPlayers();
+  </script>
+
+</body>
+</html>

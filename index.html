@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MPL ID Simulate</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar__brand">MPL ID <span>Simulate</span></div>
+    <ul class="navbar__tabs">
+      <li class="navbar__tab"><a href="home.html">Home</a></li>
+      <li class="navbar__tab is-active">Teams</li>
+      <li class="navbar__tab"><a href="players.html">Players</a></li>
+      <li class="navbar__tab"><a href="schedule.html">Schedule</a></li>
+      <li class="navbar__tab"><a href="standings.html">Standings</a></li>
+      <li class="navbar__tab"><a href="playoff.html">Playoff</a></li>
+      <li class="navbar__tab"><a href="stats.html">Stats</a></li>
+    </ul>
+  </nav>
+
+  <main class="container" style="padding-top: 40px; padding-bottom: 40px;">
+    <h1 data-type="Teams">Teams</h1>
+    <p class="text-muted" style="margin-top: 8px; margin-bottom: 24px;">
+      9 tim yang berlaga di MPL ID Season 18.
+    </p>
+
+    <input
+      type="text"
+      id="search-team"
+      placeholder="Cari nama tim..."
+      style="width: 100%; max-width: 320px; margin-bottom: 24px;"
+    >
+
+    <div id="teams-grid" class="card-grid">
+      <p class="text-muted">Memuat data tim...</p>
+    </div>
+  </main>
+
+  <script>
+    let semuaTeams = [];
+
+    function renderTeams(daftar) {
+      const grid = document.getElementById('teams-grid');
+      grid.innerHTML = '';
+
+      if (daftar.length === 0) {
+        grid.innerHTML = '<p class="text-muted">Tidak ada tim yang cocok.</p>';
+        return;
+      }
+
+      daftar.forEach(team => {
+        const card = document.createElement('a');
+        card.className = 'card';
+        card.href = `team-detail.html?id=${team.id}`;
+        card.style.display = 'block';
+        card.style.borderLeft = `4px solid ${team.color}`;
+        card.innerHTML = `
+          <h3 class="card__title" style="color: ${team.color};">${team.name}</h3>
+          <p class="card__meta">W ${team.wins} · L ${team.losses} · ${team.points} Poin</p>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    async function loadTeams() {
+      const grid = document.getElementById('teams-grid');
+      try {
+        const res = await fetch('teams.json');
+        semuaTeams = await res.json();
+        renderTeams(semuaTeams);
+      } catch (err) {
+        grid.innerHTML = '<p class="text-muted">Gagal memuat data tim. Pastikan file dibuka lewat local server, bukan langsung dari file.</p>';
+        console.error(err);
+      }
+    }
+
+    document.getElementById('search-team').addEventListener('input', (e) => {
+      const kata = e.target.value.trim().toLowerCase();
+      const hasil = semuaTeams.filter(t => t.name.toLowerCase().includes(kata));
+      renderTeams(hasil);
+    });
+
+    loadTeams();
+  </script>
+
+  <script src="terminal.js"></script>
+</body>
+</html>

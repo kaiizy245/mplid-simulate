@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MPL ID Simulate</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .home-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 720px) {
+      .home-grid { grid-template-columns: 1fr; }
+    }
+    .section-title {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--color-border);
+    }
+    .match-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--color-border);
+      gap: 12px;
+    }
+    .match-row:last-child { border-bottom: none; }
+    .match-teams {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+    }
+    .match-vs { color: var(--color-text-muted); font-size: 0.75rem; }
+    .match-meta {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      color: var(--color-text-muted);
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .rank-num {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      width: 20px;
+      text-align: right;
+    }
+    .rank-1 { color: var(--color-amber); }
+    .rank-2 { color: #94A3B8; }
+    .rank-3 { color: #A0785A; }
+    .hero-bar {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 24px 28px;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      background: var(--color-surface);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-bar::before {
+      content: "";
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--color-cyan);
+    }
+    .hero-stat { text-align: center; }
+    .hero-stat .val {
+      font-family: var(--font-mono);
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--color-cyan);
+      display: block;
+    }
+    .hero-stat .lbl {
+      font-family: var(--font-mono);
+      font-size: 0.625rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+    }
+    .divider-v {
+      width: 1px;
+      height: 40px;
+      background: var(--color-border);
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar__brand">MPL ID <span>Simulate</span></div>
+    <ul class="navbar__tabs">
+      <li class="navbar__tab is-active">Home</li>
+      <li class="navbar__tab"><a href="index.html">Teams</a></li>
+      <li class="navbar__tab"><a href="players.html">Players</a></li>
+      <li class="navbar__tab"><a href="schedule.html">Schedule</a></li>
+      <li class="navbar__tab"><a href="standings.html">Standings</a></li>
+      <li class="navbar__tab"><a href="playoff.html">Playoff</a></li>
+      <li class="navbar__tab"><a href="analytics.html">Analytics</a></li>
+      <li class="navbar__tab"><a href="power-ranking.html">Power Ranking</a></li>
+    </ul>
+  </nav>
+
+  <main class="container" style="padding-top: 36px; padding-bottom: 48px;">
+
+    <div class="hero-bar">
+      <div>
+        <div class="sys-label" style="margin-bottom: 6px; color: var(--color-green);">■ SIM_ENGINE ACTIVE</div>
+        <div style="font-family: var(--font-mono); font-weight: 700; font-size: 1.25rem; color: var(--color-text-bright);">MPL ID Season 18</div>
+        <div class="sys-label" style="margin-top: 4px;">Regular Season &middot; 9 Pekan</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+        <div class="hero-stat"><span class="val" id="hero-done">—</span><span class="lbl">Selesai</span></div>
+        <div class="divider-v"></div>
+        <div class="hero-stat"><span class="val" id="hero-left">—</span><span class="lbl">Tersisa</span></div>
+        <div class="divider-v"></div>
+        <div class="hero-stat"><span class="val">72</span><span class="lbl">Total Match</span></div>
+        <div class="divider-v"></div>
+        <div class="hero-stat"><span class="val">9</span><span class="lbl">Tim</span></div>
+      </div>
+    </div>
+
+    <div class="home-grid">
+
+      <div>
+        <div class="section-title">// Match Terdekat</div>
+        <div class="card" id="upcoming-matches"><p class="text-muted">Memuat...</p></div>
+      </div>
+
+      <div>
+        <div class="section-title">// Hasil Terbaru</div>
+        <div class="card" id="recent-matches"><p class="text-muted">Memuat...</p></div>
+      </div>
+
+      <div>
+        <div class="section-title">// Klasemen Sementara</div>
+        <div class="card" id="mini-standings"><p class="text-muted">Memuat...</p></div>
+      </div>
+
+      <div>
+        <div class="section-title">// Top Player (MVP)</div>
+        <div class="card" id="top-players"><p class="text-muted">Memuat...</p></div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="sim.js"></script>
+  <script>
+    function formatTgl(dateStr) {
+      return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+    }
+
+    function hitungKlasemen(teams, schedule) {
+      const stats = {};
+      teams.forEach(t => {
+        stats[t.id] = { id: t.id, name: t.name, color: t.color, points: 0, gameDiff: 0 };
+      });
+      schedule.filter(m => m.status === 'finished').forEach(m => {
+        const a = stats[m.team_a], b = stats[m.team_b];
+        if (!a || !b) return;
+        a.gameDiff += (m.score_a - m.score_b);
+        b.gameDiff += (m.score_b - m.score_a);
+        if (m.score_a > m.score_b) a.points++;
+        else if (m.score_b > m.score_a) b.points++;
+      });
+      return Object.values(stats).sort((x, y) =>
+        y.points !== x.points ? y.points - x.points : y.gameDiff - x.gameDiff
+      );
+    }
+
+    async function loadHome() {
+      try {
+        const [teamsRes, schedule, players] = await Promise.all([
+          fetch('teams.json'),
+          getScheduleGabungan(),
+          getPlayerStatsGabungan()
+        ]);
+        const teams = await teamsRes.json();
+        const namaTim = id => teams.find(t => t.id === id)?.name || id;
+        const warna = id => teams.find(t => t.id === id)?.color || 'inherit';
+
+        const selesai = schedule.filter(m => m.status === 'finished');
+        const tersisa = schedule.filter(m => m.status !== 'finished');
+        document.getElementById('hero-done').textContent = selesai.length;
+        document.getElementById('hero-left').textContent = tersisa.length;
+
+        // Upcoming
+        const upEl = document.getElementById('upcoming-matches');
+        const up = tersisa.slice(0, 5);
+        upEl.innerHTML = up.length === 0
+          ? '<p class="text-muted">Semua match sudah selesai.</p>'
+          : up.map(m => `
+            <div class="match-row">
+              <div class="match-teams">
+                <span style="color:${warna(m.team_a)};">${namaTim(m.team_a)}</span>
+                <span class="match-vs">VS</span>
+                <span style="color:${warna(m.team_b)};">${namaTim(m.team_b)}</span>
+              </div>
+              <div class="match-meta">${formatTgl(m.date)}<br>${m.time}</div>
+            </div>`).join('');
+
+        // Recent
+        const reEl = document.getElementById('recent-matches');
+        const re = [...selesai].reverse().slice(0, 5);
+        reEl.innerHTML = re.length === 0
+          ? '<p class="text-muted">Belum ada match selesai.</p>'
+          : re.map(m => {
+              const aW = m.score_a > m.score_b;
+              return `
+              <div class="match-row">
+                <div class="match-teams">
+                  <span class="${aW ? 'score-win' : ''}" style="color:${aW ? warna(m.team_a) : 'var(--color-text-muted)'};">${namaTim(m.team_a)}</span>
+                  <span class="match-vs">${m.score_a}–${m.score_b}</span>
+                  <span class="${!aW ? 'score-win' : ''}" style="color:${!aW ? warna(m.team_b) : 'var(--color-text-muted)'};">${namaTim(m.team_b)}</span>
+                </div>
+                <div class="match-meta">Wk${m.week} · ${m.format}</div>
+              </div>`;
+            }).join('');
+
+        // Mini standings (top 7, garis di posisi 6)
+        const klasemen = hitungKlasemen(teams, schedule);
+        document.getElementById('mini-standings').innerHTML =
+          klasemen.slice(0, 7).map((t, i) => `
+            <div class="match-row" ${i === 5 ? 'style="border-bottom: 1px solid var(--color-cyan);"' : ''}>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <span class="rank-num rank-${i+1}">${i+1}</span>
+                <a href="team-detail.html?id=${t.id}" style="font-family:var(--font-mono);font-size:0.875rem;color:${t.color};">${t.name}</a>
+              </div>
+              <span style="font-family:var(--font-mono);font-size:0.875rem;color:var(--color-text-bright);">${t.points} pts</span>
+            </div>`).join('')
+          + `<div style="padding-top:10px;"><a href="standings.html" style="font-family:var(--font-mono);font-size:0.6875rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-cyan);">Lihat semua →</a></div>`;
+
+        // Top players MVP (top 5)
+        const sorted = [...players].sort((a, b) => b.stats.mvp_count - a.stats.mvp_count).slice(0, 5);
+        document.getElementById('top-players').innerHTML =
+          sorted.map((p, i) => {
+            const tim = teams.find(t => t.id === p.team_id);
+            const kda = p.stats.deaths === 0
+              ? (p.stats.kills + p.stats.assists).toFixed(1)
+              : ((p.stats.kills + p.stats.assists) / p.stats.deaths).toFixed(1);
+            return `
+              <div class="match-row">
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <span class="rank-num rank-${i+1}">${i+1}</span>
+                  <div>
+                    <a href="player-detail.html?id=${p.id}" style="font-family:var(--font-mono);font-size:0.875rem;color:var(--color-text-bright);">${p.name}</a>
+                    <div style="font-family:var(--font-mono);font-size:0.6875rem;color:${tim?.color || 'var(--color-text-muted)'};">${tim?.name || p.team_id}</div>
+                  </div>
+                </div>
+                <div style="text-align:right;font-family:var(--font-mono);">
+                  <div style="color:var(--color-amber);font-weight:700;">${p.stats.mvp_count} MVP</div>
+                  <div style="font-size:0.6875rem;color:var(--color-text-muted);">KDA ${kda}</div>
+                </div>
+              </div>`;
+          }).join('')
+          + `<div style="padding-top:10px;"><a href="stats.html" style="font-family:var(--font-mono);font-size:0.6875rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-cyan);">Lihat semua →</a></div>`;
+
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    loadHome();
+  </script>
+
+  <script src="terminal.js"></script>
+</body>
+</html>

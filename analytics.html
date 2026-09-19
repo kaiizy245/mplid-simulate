@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics — MPL ID Simulate</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .section-title {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      margin-bottom: 12px;
+      margin-top: 32px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::after { content:""; flex:1; height:1px; background:var(--color-border); }
+    .section-title:first-child { margin-top: 0; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    @media(max-width:720px){ .grid-2,.grid-3{ grid-template-columns:1fr; } }
+
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .summary-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      border-left: 3px solid var(--color-cyan, #38BDF8);
+    }
+    .summary-val { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; color: var(--color-cyan, #38BDF8); }
+    .summary-lbl { font-family: var(--font-mono); font-size: 0.5625rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text-muted); margin-top: 2px; }
+
+    /* Hero list */
+    .hero-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--color-border); }
+    .hero-row:last-child { border-bottom: none; }
+    .hero-rank { font-family: var(--font-mono); font-size: 0.6875rem; color: var(--color-text-muted); width: 16px; text-align: right; flex-shrink: 0; }
+    .hero-name { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--color-text-bright, #F0F4F8); flex: 1; }
+    .hero-role-tag { font-family: var(--font-mono); font-size: 0.5625rem; color: var(--color-text-muted); padding: 1px 5px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); white-space: nowrap; }
+    .hero-bar-bg { width: 70px; height: 3px; background: var(--color-border); border-radius: 2px; overflow: hidden; flex-shrink: 0; }
+    .hero-bar-fill { height: 100%; border-radius: 2px; }
+    .hero-count { font-family: var(--font-mono); font-size: 0.75rem; width: 24px; text-align: right; flex-shrink: 0; }
+
+    /* Player leaderboard row */
+    .player-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--color-border); }
+    .player-row:last-child { border-bottom: none; }
+    .player-rank { font-family: var(--font-mono); font-size: 0.6875rem; color: var(--color-text-muted); width: 16px; text-align: right; flex-shrink: 0; }
+    .rank-1 { color: var(--color-amber, #F59E0B); }
+    .rank-2 { color: #94A3B8; }
+    .rank-3 { color: #A0785A; }
+    .player-name-col { flex: 1; }
+    .player-nm { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--color-text-bright, #F0F4F8); }
+    .player-tm { font-family: var(--font-mono); font-size: 0.5625rem; margin-top: 1px; }
+    .player-val { font-family: var(--font-mono); font-size: 0.9rem; font-weight: 700; min-width: 36px; text-align: right; }
+
+    /* Week selector */
+    .week-selector {
+      display: flex; gap: 0; flex-wrap: wrap;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      width: fit-content;
+      margin-bottom: 16px;
+    }
+    .week-btn {
+      font-family: var(--font-mono); font-size: 0.625rem;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 6px 12px; cursor: pointer;
+      color: var(--color-text-muted);
+      border-right: 1px solid var(--color-border);
+      transition: color 0.1s, background 0.1s;
+    }
+    .week-btn:last-child { border-right: none; }
+    .week-btn:hover { color: var(--color-text-bright, #F0F4F8); background: var(--color-surface-2, #111820); }
+    .week-btn.active { color: var(--color-amber, #F59E0B); background: rgba(245,158,11,0.08); }
+
+    /* TOTW card */
+    .totw-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    @media(max-width:640px){ .totw-grid{ grid-template-columns: repeat(3,1fr); } }
+    .totw-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      text-align: center;
+      position: relative;
+    }
+    .totw-role-label { font-family: var(--font-mono); font-size: 0.5rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-cyan, #38BDF8); margin-bottom: 6px; }
+    .totw-player-name { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: var(--color-text-bright, #F0F4F8); }
+    .totw-team { font-family: var(--font-mono); font-size: 0.5rem; margin-top: 3px; }
+    .totw-score { font-family: var(--font-mono); font-size: 0.6875rem; color: var(--color-amber, #F59E0B); margin-top: 4px; }
+
+    /* POTW big card */
+    .potw-card {
+      background: linear-gradient(135deg, var(--color-surface), var(--color-surface-2, #111820));
+      border: 1px solid var(--color-amber, #F59E0B);
+      border-radius: var(--radius-md);
+      padding: 20px 24px;
+      display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    }
+    .potw-badge {
+      font-family: var(--font-mono); font-size: 0.5625rem;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--color-amber, #F59E0B);
+      border: 1px solid var(--color-amber, #F59E0B);
+      padding: 3px 8px; border-radius: var(--radius-sm);
+    }
+    .potw-name { font-family: var(--font-mono); font-size: 1.25rem; font-weight: 700; color: var(--color-text-bright, #F0F4F8); }
+    .potw-meta { font-family: var(--font-mono); font-size: 0.6875rem; color: var(--color-text-muted); margin-top: 2px; }
+    .potw-stats { display: flex; gap: 20px; flex-wrap: wrap; }
+    .potw-stat-val { font-family: var(--font-mono); font-size: 1.125rem; font-weight: 700; color: var(--color-amber, #F59E0B); }
+    .potw-stat-lbl { font-family: var(--font-mono); font-size: 0.5rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text-muted); }
+
+    /* Filter tab (role) */
+    .filter-tabs { display: flex; gap: 0; margin-bottom: 16px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden; width: fit-content; }
+    .filter-tab { font-family: var(--font-mono); font-size: 0.625rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 6px 12px; cursor: pointer; color: var(--color-text-muted); border-right: 1px solid var(--color-border); transition: color 0.1s, background 0.1s; }
+    .filter-tab:last-child { border-right: none; }
+    .filter-tab:hover { color: var(--color-text-bright,#F0F4F8); background: var(--color-surface-2,#111820); }
+    .filter-tab.active { color: var(--color-cyan,#38BDF8); background: var(--color-cyan-soft,#38BDF81A); }
+
+    .no-data-msg { padding: 24px; text-align: center; }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar__brand">MPL ID <span>Simulate</span></div>
+    <ul class="navbar__tabs">
+      <li class="navbar__tab"><a href="home.html">Home</a></li>
+      <li class="navbar__tab"><a href="index.html">Teams</a></li>
+      <li class="navbar__tab"><a href="players.html">Players</a></li>
+      <li class="navbar__tab"><a href="schedule.html">Schedule</a></li>
+      <li class="navbar__tab"><a href="standings.html">Standings</a></li>
+      <li class="navbar__tab"><a href="playoff.html">Playoff</a></li>
+      <li class="navbar__tab is-active">Analytics</li>
+    </ul>
+  </nav>
+
+  <main class="container" style="padding-top:36px; padding-bottom:48px;">
+    <h1 data-type="Analytics">Analytics</h1>
+    <p class="text-muted" style="margin-top:8px; margin-bottom:28px;">
+      Statistik pemain, draft hero, award mingguan, dan leaderboard dari seluruh simulasi.
+    </p>
+
+    <div id="no-data" class="card" style="display:none;">
+      <p class="text-muted no-data-msg">Belum ada data. Simulasikan beberapa pertandingan di halaman Schedule terlebih dahulu.</p>
+    </div>
+
+    <div id="main-content">
+
+      <!-- Ringkasan -->
+      <div class="section-title">// Ringkasan Simulasi</div>
+      <div class="summary-cards" id="summary-cards"></div>
+
+      <!-- ===== WEEKLY AWARDS ===== -->
+      <div class="section-title">// Weekly Awards</div>
+      <div class="week-selector" id="week-selector"></div>
+
+      <div id="awards-content">
+        <div style="margin-bottom:20px;" id="potw-block"></div>
+        <div class="section-title" style="margin-top:0;">// Team of the Week</div>
+        <div class="totw-grid" id="totw-block"></div>
+      </div>
+
+      <!-- ===== LEADERBOARD ===== -->
+      <div class="section-title">// Leaderboard</div>
+      <div class="grid-3" style="margin-bottom:8px;">
+        <div>
+          <div class="section-title">// Most Kills</div>
+          <div class="card" id="lb-kills"></div>
+        </div>
+        <div>
+          <div class="section-title">// Most Assists</div>
+          <div class="card" id="lb-assists"></div>
+        </div>
+        <div>
+          <div class="section-title">// MVP Points</div>
+          <div class="card" id="lb-mvp"></div>
+        </div>
+      </div>
+
+      <!-- Points leaderboard -->
+      <div class="section-title">// Overall Points (MVP+POTW+TOTW)</div>
+      <div class="card" id="lb-points"></div>
+
+      <!-- ===== HERO ANALYTICS ===== -->
+      <div class="section-title">// Hero Draft Analytics</div>
+      <div class="filter-tabs" id="role-filter">
+        <div class="filter-tab active" data-role="">Semua</div>
+        <div class="filter-tab" data-role="EXP Laner">EXP</div>
+        <div class="filter-tab" data-role="Jungler">Jungler</div>
+        <div class="filter-tab" data-role="Mid Laner">Mid</div>
+        <div class="filter-tab" data-role="Gold Laner">Gold</div>
+        <div class="filter-tab" data-role="Roamer">Roamer</div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:16px;">
+        <div>
+          <div class="section-title">// Top Pick</div>
+          <div class="card" id="top-picks"></div>
+        </div>
+        <div>
+          <div class="section-title">// Top Ban</div>
+          <div class="card" id="top-bans"></div>
+        </div>
+      </div>
+
+      <div class="section-title">// Presence Rate (Pick + Ban %)</div>
+      <div class="card" id="presence-rate"></div>
+
+      <div class="section-title">// Hero Terbanyak di Sisi Pemenang</div>
+      <div class="card" id="win-heroes"></div>
+
+    </div>
+  </main>
+
+  <script src="sim.js"></script>
+  <script src="terminal.js"></script>
+  <script>
+    let teamsData = [];
+    let playersData = [];
+    let heroRoles = {};
+    let activeRole = '';
+    let activeWeek = null;
+
+    // Draft analytics data
+    let draftData = { picks:{}, bans:{}, winPicks:{}, totalGames:0, totalMatches:0 };
+
+    function namaTim(id){ return teamsData.find(t=>t.id===id)?.name||id; }
+    function warnaTim(id){ return teamsData.find(t=>t.id===id)?.color||'inherit'; }
+    function namaPlayer(id){ return playersData.find(p=>p.id===id)?.name||id; }
+    function rolePemain(id){ return playersData.find(p=>p.id===id)?.role||''; }
+
+    /* --- Collect draft data from localStorage --- */
+    function collectDraftData(){
+      const overrides = getOverrides();
+      const picks={}, bans={}, winPicks={};
+      let totalGames=0, totalMatches=0;
+      Object.values(overrides).forEach(m=>{
+        if(!m.games) return;
+        totalMatches++;
+        m.games.forEach(g=>{
+          totalGames++;
+          const {draft,winner}=g;
+          [...(draft.picks_a||[]),...(draft.picks_b||[])].forEach(p=>{ picks[p.name]=(picks[p.name]||0)+1; });
+          [...(draft.bans_a||[]),...(draft.bans_b||[])].forEach(h=>{ bans[h]=(bans[h]||0)+1; });
+          const wp=winner===m.team_a?(draft.picks_a||[]):(draft.picks_b||[]);
+          wp.forEach(p=>{ winPicks[p.name]=(winPicks[p.name]||0)+1; });
+        });
+      });
+      draftData={picks,bans,winPicks,totalGames,totalMatches};
+    }
+
+    /* --- Render hero list --- */
+    function filteredBy(obj,role){ if(!role) return obj; return Object.fromEntries(Object.entries(obj).filter(([k])=>heroRoles[k]===role)); }
+    function renderBar(count,max,color){ const pct=max>0?Math.round(count/max*100):0; return `<div class="hero-bar-bg"><div class="hero-bar-fill" style="width:${pct}%;background:${color};"></div></div>`; }
+
+    function renderHeroList(elId, obj, color){
+      const el=document.getElementById(elId);
+      const sorted=Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,12);
+      const max=sorted[0]?.[1]||1;
+      if(!sorted.length){el.innerHTML='<p class="text-muted" style="padding:8px 0;">Tidak ada data.</p>';return;}
+      el.innerHTML=sorted.map(([hero,count],i)=>`
+        <div class="hero-row">
+          <span class="hero-rank">${i+1}</span>
+          <span class="hero-name">${hero}</span>
+          <span class="hero-role-tag">${heroRoles[hero]||'—'}</span>
+          ${renderBar(count,max,color)}
+          <span class="hero-count" style="color:${color};">${count}</span>
+        </div>`).join('');
+    }
+
+    function renderPresence(role){
+      const el=document.getElementById('presence-rate');
+      const p=filteredBy(draftData.picks,role), b=filteredBy(draftData.bans,role);
+      const heroes=new Set([...Object.keys(p),...Object.keys(b)]);
+      const presence={};
+      heroes.forEach(h=>{presence[h]=(p[h]||0)+(b[h]||0);});
+      const sorted=Object.entries(presence).sort((a,b2)=>b2[1]-a[1]).slice(0,12);
+      const max=sorted[0]?.[1]||1;
+      if(!sorted.length){el.innerHTML='<p class="text-muted" style="padding:8px 0;">Tidak ada data.</p>';return;}
+      el.innerHTML=sorted.map(([hero,total],i)=>{
+        const pk=p[hero]||0, bk=b[hero]||0;
+        const pct=draftData.totalGames>0?Math.round(total/draftData.totalGames*100):0;
+        return `<div class="hero-row">
+          <span class="hero-rank">${i+1}</span>
+          <span class="hero-name">${hero}</span>
+          <span class="hero-role-tag">${heroRoles[hero]||'—'}</span>
+          <span style="font-family:var(--font-mono);font-size:0.6875rem;color:var(--color-amber,#F59E0B);width:36px;text-align:right;">${pct}%</span>
+          ${renderBar(total,max,'var(--color-amber,#F59E0B)')}
+          <span style="font-family:var(--font-mono);font-size:0.5625rem;color:var(--color-text-muted);">P:${pk} B:${bk}</span>
+        </div>`;
+      }).join('');
+    }
+
+    function renderHeroSection(role){
+      renderHeroList('top-picks', filteredBy(draftData.picks,role), 'var(--color-cyan,#38BDF8)');
+      renderHeroList('top-bans',  filteredBy(draftData.bans, role), 'var(--color-red,#F87171)');
+      renderPresence(role);
+      renderHeroList('win-heroes', filteredBy(draftData.winPicks,role), 'var(--color-green,#22C55E)');
+    }
+
+    /* --- Summary cards --- */
+    function renderSummary(weeklyStats){
+      const totalWeeks=Object.keys(weeklyStats).filter(k=>k!=='_awards'&&!isNaN(k)).length;
+      document.getElementById('summary-cards').innerHTML=`
+        <div class="summary-card"><div class="summary-val">${draftData.totalMatches}</div><div class="summary-lbl">Match Simulasi</div></div>
+        <div class="summary-card"><div class="summary-val">${draftData.totalGames}</div><div class="summary-lbl">Total Games</div></div>
+        <div class="summary-card"><div class="summary-val">${totalWeeks}</div><div class="summary-lbl">Pekan Tersimulasi</div></div>
+        <div class="summary-card"><div class="summary-val">${Object.keys(draftData.picks).length}</div><div class="summary-lbl">Hero Dipick</div></div>
+        <div class="summary-card" style="border-left-color:var(--color-red,#F87171);">
+          <div class="summary-val" style="color:var(--color-red,#F87171);">${Object.keys(draftData.bans).length}</div><div class="summary-lbl">Hero Diban</div>
+        </div>`;
+    }
+
+    /* --- Weekly awards --- */
+    function renderWeekSelector(weeks){
+      const el=document.getElementById('week-selector');
+      el.innerHTML=weeks.map((w,i)=>`
+        <div class="week-btn ${i===0?'active':''}" data-week="${w}">Wk ${w}</div>`).join('');
+    }
+
+    function renderAwards(week){
+      const weeklyStats=getWeeklyStats();
+      const wData=weeklyStats[week];
+      const awards=wData?._awards;
+
+      // POTW
+      const potwEl=document.getElementById('potw-block');
+      if(!awards?.potw||!wData){
+        potwEl.innerHTML='<div class="potw-card"><p class="text-muted">Data POTW belum tersedia untuk pekan ini.</p></div>';
+      } else {
+        const pId=awards.potw;
+        const pSt=wData[pId];
+        const kda=pSt.deaths===0?(pSt.kills+pSt.assists).toFixed(1):((pSt.kills+pSt.assists)/pSt.deaths).toFixed(1);
+        const tim=teamsData.find(t=>t.id===pSt.team);
+        potwEl.innerHTML=`
+          <div class="section-title" style="margin-top:0;">// Player of the Week — Wk ${week}</div>
+          <div class="potw-card">
+            <div>
+              <div class="potw-badge">⭐ POTW</div>
+              <div class="potw-name" style="margin-top:6px;">${pSt.name}</div>
+              <div class="potw-meta"><span style="color:${tim?.color||'inherit'}">${tim?.name||pSt.team}</span> · <span class="badge">${pSt.role}</span></div>
+            </div>
+            <div class="potw-stats">
+              <div><div class="potw-stat-val">${pSt.kills}</div><div class="potw-stat-lbl">Kills</div></div>
+              <div><div class="potw-stat-val">${pSt.assists}</div><div class="potw-stat-lbl">Assists</div></div>
+              <div><div class="potw-stat-val">${kda}</div><div class="potw-stat-lbl">KDA</div></div>
+              <div><div class="potw-stat-val">${pSt.mvps}</div><div class="potw-stat-lbl">MVP</div></div>
+              <div><div class="potw-stat-val">${Math.round(pSt.perfScore)}</div><div class="potw-stat-lbl">Perf Score</div></div>
+            </div>
+          </div>`;
+      }
+
+      // TOTW
+      const totwEl=document.getElementById('totw-block');
+      const roles=['EXP Laner','Jungler','Mid Laner','Gold Laner','Roamer'];
+      if(!awards?.totw||!wData){
+        totwEl.innerHTML='<p class="text-muted">Data TOTW belum tersedia.</p>';
+        return;
+      }
+      totwEl.innerHTML=roles.map((role,i)=>{
+        const pId=awards.totw[i];
+        if(!pId||!wData[pId]) return `<div class="totw-card"><div class="totw-role-label">${role}</div><div class="totw-player-name" style="color:var(--color-text-muted);">—</div></div>`;
+        const st=wData[pId];
+        const tim=teamsData.find(t=>t.id===st.team);
+        return `<div class="totw-card">
+          <div class="totw-role-label">${role}</div>
+          <div class="totw-player-name">${st.name}</div>
+          <div class="totw-team" style="color:${tim?.color||'var(--color-text-muted)'};">${tim?.name||st.team}</div>
+          <div class="totw-score">Score: ${Math.round(st.perfScore)}</div>
+        </div>`;
+      }).join('');
+    }
+
+    /* --- Leaderboards --- */
+    function renderLeaderboard(elId, players, valFn, color, label){
+      const el=document.getElementById(elId);
+      const sorted=[...players].sort((a,b)=>valFn(b)-valFn(a)).slice(0,10);
+      if(!sorted.length){el.innerHTML='<p class="text-muted" style="padding:8px 0;">Tidak ada data.</p>';return;}
+      el.innerHTML=sorted.map((p,i)=>{
+        const tim=teamsData.find(t=>t.id===p.team_id);
+        return `<div class="player-row">
+          <span class="player-rank rank-${i+1}">${i+1}</span>
+          <div class="player-name-col">
+            <div class="player-nm"><a href="player-detail.html?id=${p.id}" style="color:var(--color-text-bright,#F0F4F8);">${p.name}</a></div>
+            <div class="player-tm" style="color:${tim?.color||'var(--color-text-muted)'};">${tim?.name||p.team_id} · ${p.role}</div>
+          </div>
+          <div class="player-val" style="color:${color};">${valFn(p)}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderPointsLeaderboard(players){
+      const points=getPoints();
+      const el=document.getElementById('lb-points');
+      const sorted=[...players]
+        .map(p=>({...p, pts: points[p.id]||0}))
+        .sort((a,b)=>b.pts-a.pts)
+        .slice(0,10);
+      if(!sorted.length||sorted[0].pts===0){el.innerHTML='<p class="text-muted" style="padding:8px 0;">Belum ada poin.</p>';return;}
+      el.innerHTML=sorted.map((p,i)=>{
+        const tim=teamsData.find(t=>t.id===p.team_id);
+        return `<div class="player-row">
+          <span class="player-rank rank-${i+1}">${i+1}</span>
+          <div class="player-name-col">
+            <div class="player-nm"><a href="player-detail.html?id=${p.id}" style="color:var(--color-text-bright,#F0F4F8);">${p.name}</a></div>
+            <div class="player-tm" style="color:${tim?.color||'var(--color-text-muted)'};">${tim?.name||p.team_id} · ${p.role}</div>
+          </div>
+          <div class="player-val" style="color:var(--color-amber,#F59E0B);">${p.pts} <span style="font-size:0.5625rem;color:var(--color-text-muted);">pts</span></div>
+        </div>`;
+      }).join('');
+    }
+
+    /* --- Main init --- */
+    async function init(){
+      const [teamsRes, players] = await Promise.all([fetch('teams.json'), getPlayerStatsGabungan()]);
+      teamsData  = await teamsRes.json();
+      playersData = players;
+
+      HERO_POOL.forEach(h=>{ heroRoles[h.name]=h.role; });
+      collectDraftData();
+
+      const weeklyStats = getWeeklyStats();
+      const weeks = Object.keys(weeklyStats).filter(k=>k!=='_awards'&&!isNaN(k)).sort((a,b)=>+a-+b);
+      const hasData = draftData.totalMatches > 0 || weeks.length > 0;
+
+      document.getElementById('no-data').style.display = hasData?'none':'block';
+      document.getElementById('main-content').style.display = hasData?'block':'none';
+      if(!hasData) return;
+
+      renderSummary(weeklyStats);
+
+      // Week selector
+      if(weeks.length){
+        activeWeek = weeks[0];
+        renderWeekSelector(weeks);
+        renderAwards(activeWeek);
+        document.getElementById('week-selector').addEventListener('click', e=>{
+          const btn=e.target.closest('[data-week]');
+          if(!btn) return;
+          document.querySelectorAll('.week-btn').forEach(b=>b.classList.remove('active'));
+          btn.classList.add('active');
+          activeWeek=btn.dataset.week;
+          renderAwards(activeWeek);
+        });
+      } else {
+        document.getElementById('awards-content').innerHTML='<p class="text-muted">Belum ada weekly stats. Simulasikan via Schedule.</p>';
+        document.getElementById('week-selector').style.display='none';
+      }
+
+      // Leaderboards
+      renderLeaderboard('lb-kills',   players, p=>p.stats.kills,     'var(--color-red,#F87171)',   'Kills');
+      renderLeaderboard('lb-assists', players, p=>p.stats.assists,   'var(--color-green,#22C55E)', 'Assists');
+      renderLeaderboard('lb-mvp',     players, p=>p.stats.mvp_count, 'var(--color-amber,#F59E0B)', 'MVP');
+      renderPointsLeaderboard(players);
+
+      // Hero analytics
+      renderHeroSection(activeRole);
+
+      document.getElementById('role-filter').addEventListener('click', e=>{
+        const tab=e.target.closest('[data-role]');
+        if(!tab) return;
+        document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
+        tab.classList.add('active');
+        activeRole=tab.dataset.role;
+        renderHeroSection(activeRole);
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>

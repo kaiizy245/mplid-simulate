@@ -1,0 +1,458 @@
+/* ==========================================================
+   MPL ID SIMULATE — Design System (v4, data-terminal)
+   Terinspirasi PlayoffLabs: presisi, teknikal, sistem live
+   ========================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Warna dasar — hitam terminal */
+  --color-bg: #080B0F;
+  --color-surface: #0D1117;
+  --color-surface-2: #111820;
+  --color-surface-hover: #161D27;
+  --color-border: #1E2733;
+  --color-border-bright: #2E3D50;
+
+  /* Aksen terminal */
+  --color-green: #22C55E;       /* live, online, qualified */
+  --color-green-soft: #22C55E1A;
+  --color-cyan: #38BDF8;        /* link, aksen utama */
+  --color-cyan-soft: #38BDF81A;
+  --color-amber: #F59E0B;       /* MVP, highlight penting */
+  --color-amber-soft: #F59E0B1A;
+  --color-red: #F87171;         /* eliminated, loss */
+  --color-red-soft: #F871711A;
+
+  --color-text: #CDD5E0;
+  --color-text-bright: #F0F4F8;
+  --color-text-muted: #4A5568;
+  --color-text-dim: #2D3748;
+
+  /* Tipografi */
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  --font-body: 'Inter', sans-serif;
+
+  /* Radius & Spacing — lebih kotak dari sebelumnya */
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 7px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 40px;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------- Reset dasar ---------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--color-bg);
+  background-image:
+    linear-gradient(rgba(56, 189, 248, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+::selection {
+  background: var(--color-cyan);
+  color: var(--color-bg);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--color-bg); }
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-bright);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--color-cyan); }
+
+a {
+  color: var(--color-cyan);
+  text-decoration: none;
+}
+a:hover { text-decoration: underline; }
+
+img { max-width: 100%; display: block; }
+
+/* ---------- Tipografi ---------- */
+h1, h2, h3 {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: var(--color-text-bright);
+}
+
+h1 {
+  font-size: 1.875rem;
+  position: relative;
+  padding-left: var(--space-3);
+}
+h1::before {
+  content: "//";
+  position: absolute;
+  left: 0;
+  color: var(--color-cyan);
+  font-size: 1rem;
+  top: 0.3em;
+}
+
+h2 {
+  font-size: 1.125rem;
+  color: var(--color-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8125rem;
+}
+
+h3 { font-size: 1rem; }
+
+/* Label sistem kecil */
+.sys-label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.text-muted { color: var(--color-text-muted); }
+.text-bright { color: var(--color-text-bright); }
+.text-cyan { color: var(--color-cyan); }
+.text-amber { color: var(--color-amber); }
+.text-green { color: var(--color-green); }
+
+/* Angka skor / statistik besar */
+.stat-number {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--color-amber);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Layout dasar ---------- */
+.container {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+/* ---------- Nav bar ---------- */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-3) var(--space-4);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(8, 11, 15, 0.92);
+  backdrop-filter: blur(10px);
+}
+
+.navbar__brand {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-text-bright);
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Titik hijau status online */
+.navbar__brand::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-green);
+  box-shadow: 0 0 8px var(--color-green);
+  animation: pulse-live 2s ease-in-out infinite;
+}
+
+.navbar__brand span { color: var(--color-cyan); }
+
+.navbar__tabs {
+  display: flex;
+  gap: 0;
+  list-style: none;
+  flex-wrap: wrap;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.navbar__tab {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  padding: 6px 16px;
+  border-right: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: color 0.1s, background 0.1s;
+}
+
+.navbar__tab:last-child { border-right: none; }
+.navbar__tab a { color: inherit; text-decoration: none; }
+.navbar__tab:hover {
+  color: var(--color-text-bright);
+  background: var(--color-surface-2);
+}
+
+.navbar__tab.is-active {
+  color: var(--color-cyan);
+  background: var(--color-cyan-soft);
+}
+
+/* ---------- Card ---------- */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  transition: border-color 0.15s var(--ease), background 0.15s var(--ease);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Garis aksen kiri */
+.card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--color-border-bright);
+  transition: background 0.15s var(--ease);
+}
+
+.card:hover {
+  border-color: var(--color-border-bright);
+  background: var(--color-surface-hover);
+}
+
+.card:hover::before {
+  background: var(--color-cyan);
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: var(--space-2);
+}
+
+.card__title {
+  font-family: var(--font-mono);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text-bright);
+}
+
+.card__meta {
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+  font-family: var(--font-mono);
+  margin-top: var(--space-1);
+}
+
+a.card {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+/* Badge role pemain */
+.badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--color-cyan-soft);
+  color: var(--color-cyan);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+/* ---------- Tabel ---------- */
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+thead th {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+}
+
+tbody td {
+  padding: 10px var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+tbody tr:last-child td { border-bottom: none; }
+
+tbody tr {
+  transition: background 0.1s;
+}
+
+tbody tr:hover { background: var(--color-surface-hover); }
+
+/* Garis playoff cut */
+tr.playoff-cut td {
+  border-bottom: 2px solid var(--color-cyan);
+}
+
+.status-live {
+  font-family: var(--font-mono);
+  color: var(--color-green);
+  font-weight: 600;
+  font-size: 0.75rem;
+  animation: pulse-live 1.6s ease-in-out infinite;
+}
+.status-live::before {
+  content: "■ ";
+  font-size: 0.5rem;
+  vertical-align: middle;
+}
+
+.status-upcoming {
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.score-win { color: var(--color-green); font-weight: 700; }
+.score-loss { color: var(--color-red); font-weight: 700; }
+
+/* ---------- Tombol ---------- */
+.btn {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 8px 18px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-bright);
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: border-color 0.1s, color 0.1s, background 0.1s;
+}
+
+.btn:hover {
+  border-color: var(--color-cyan);
+  color: var(--color-cyan);
+  background: var(--color-cyan-soft);
+  text-decoration: none;
+}
+
+.btn:active { opacity: 0.8; }
+
+.btn--primary {
+  background: var(--color-cyan-soft);
+  border-color: var(--color-cyan);
+  color: var(--color-cyan);
+}
+
+.btn--primary:hover {
+  background: var(--color-cyan);
+  color: var(--color-bg);
+}
+
+/* ---------- Input & Select ---------- */
+input[type="text"],
+select {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-bright);
+  padding: 8px 12px;
+  transition: border-color 0.1s;
+  outline: none;
+}
+
+input[type="text"]::placeholder { color: var(--color-text-muted); }
+input[type="text"]:focus,
+select:focus { border-color: var(--color-cyan); }
+select option { background: var(--color-surface-2); }
+
+/* ---------- Responsif ---------- */
+@media (max-width: 640px) {
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+  .navbar__tabs {
+    width: 100%;
+    overflow-x: auto;
+  }
+  h1 { font-size: 1.5rem; }
+  .container { padding: 0 var(--space-3); }
+}
+
+/* ---------- Aksesibilitas ---------- */
+:focus-visible {
+  outline: 2px solid var(--color-cyan);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+  html { scroll-behavior: auto; }
+}
